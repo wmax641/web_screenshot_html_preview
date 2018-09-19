@@ -9,14 +9,17 @@ except Exception as e:
     print("    {}".format(str(e)))
     sys.exit(1)
 
+TIMEOUT = 30
 DRIVER = None
 URLS = []
+
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("file", help="File with a list of URLs")
+    parser.add_argument("-t", "--timeout", type=int, help="Page Load timeout (default 30sec")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-f", action="store_true", help="FirefoxDriver (Default). Requires 'firefox' and 'geckodriver'")
     group.add_argument("-c", action="store_true", help="ChromeDriver. (Not Implemented)")
@@ -34,9 +37,8 @@ if __name__ == "__main__":
         print("    {}".format(str(e)))
         sys.exit(1)
     for url in URLS:
+        #check URLs
         print(url)
-
-    sys.exit(0)
 
     # FirefoxDriver (Default)
     if (not args.f and not args.c and not args.p) or args.f:
@@ -48,7 +50,7 @@ if __name__ == "__main__":
             DRIVER = webdriver.Firefox(firefox_options=options)
         except Exception as e:
             print("Could not use FirefoxDriver")
-            print(e)
+            print(str(e))
             sys.exit(1)
     elif args.c:
         print("chrome")
@@ -61,6 +63,18 @@ if __name__ == "__main__":
 
     print("...Successful")
 
+    print("Trying each URL")
+    print("Timeout set to {} seconds".format(TIMEOUT))
 
+    DRIVER.set_page_load_timeout(15)
+    for url in URLS:
+        print("Trying URL: {}...".format(url))
+        try:
+            DRIVER.get(url)
+        except Exception as e:
+            print("    Exception: {}".format(str(e)))
+        finally:
+            DRIVER.delete_all_cookies()
 
     DRIVER.close()
+    DRIVER.quit()
